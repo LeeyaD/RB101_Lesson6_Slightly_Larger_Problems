@@ -40,10 +40,30 @@ def empty_squares(brd)
   brd.keys.select { |num| brd[num] == INITIAL_MARKER }
 end
 
+def joinor(array, delimiter = ", ", join_word = "or") #should be able to abstract logic some more...
+  if array.size == 1
+    "#{array[0]}"
+  elsif array.size == 2
+    "#{array[0]} " + join_word + " #{array[1]}"
+  else #abstract the logic here into a method called 
+    result = ""
+    curr_value = nil
+    counter = 0
+
+    loop do
+      break if counter >= array.size - 1
+      curr_value = array[counter]
+      result << curr_value.to_s + delimiter
+      counter += 1
+    end
+    result + join_word + " #{array[-1]}"
+  end
+end
+
 def player_places_piece!(brd)
   square = ""
   loop do
-    prompt "Choose a sqaure (#{empty_squares(brd).join(', ')}):"
+    prompt "Choose a sqaure (#{joinor(empty_squares(brd))}):"
     square = gets.chomp.to_i
     break if empty_squares(brd).include?(square)
     prompt "Sorry, that's not a valid choice"
@@ -63,9 +83,9 @@ end
 
 def detect_winner(brd)
   WINNING_LINES.each do |line|
-    if brd.values_at(*line).all?(PLAYER_MARKER)
+    if brd.values_at(*line).count(PLAYER_MARKER) == 3
       return 'Player'
-    elsif brd.values_at(*line).all?(COMPUTER_MARKER)
+    elsif brd.values_at(*line).count(COMPUTER_MARKER) == 3
       return 'Computer'
     end
   end
