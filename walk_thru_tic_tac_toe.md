@@ -6,6 +6,7 @@ TIc Tac Toe
 4. Display the updated board state
 5. If winner, display winner
 6. If board is full, display tie
+-. Display scoreboard
 7. If neither winner nor board is full, go to #2
 8. Play again?
 9. If yes, go to #1

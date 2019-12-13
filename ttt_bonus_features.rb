@@ -5,6 +5,7 @@ COMPUTER_MARKER = "O"
 WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] +
                 [[1, 4, 7], [2, 5, 8], [3, 6, 9]] +
                 [[1, 5, 9], [3, 5, 7]]
+scoreboard = {'Player' => 0, 'Computer' => 0}
 
 def prompt(msg)
   puts "=> #{msg}"
@@ -14,6 +15,7 @@ end
 def display_board(brd)
   system 'clear'
   prompt "You're a #{PLAYER_MARKER}. Computer is #{COMPUTER_MARKER}."
+  prompt "The current score is, "
   puts ""
   puts "      |      |"
   puts "   #{brd[1]}  |   #{brd[2]}  |   #{brd[3]}"
@@ -40,23 +42,13 @@ def empty_squares(brd)
   brd.keys.select { |num| brd[num] == INITIAL_MARKER }
 end
 
-def joinor(array, delimiter = ", ", join_word = "or") #should be able to abstract logic some more...
+def joinor(array, delimiter = ", ", join_word = "or")
   if array.size == 1
     "#{array[0]}"
   elsif array.size == 2
     "#{array[0]} " + join_word + " #{array[1]}"
-  else #abstract the logic here into a method called 
-    result = ""
-    curr_value = nil
-    counter = 0
-
-    loop do
-      break if counter >= array.size - 1
-      curr_value = array[counter]
-      result << curr_value.to_s + delimiter
-      counter += 1
-    end
-    result + join_word + " #{array[-1]}"
+  else
+    array.join(delimiter).insert(-2, join_word + " ")
   end
 end
 
@@ -96,6 +88,24 @@ def someone_won?(brd)
   !!detect_winner(brd)
 end
 
+def update_score(scorebrd, winner)
+  scorebrd[winner] += 1 unless winner == nil
+end
+
+def display_score(scorebrd)
+  prompt "The score is: Player #{scorebrd['Player']}, Computer #{scorebrd['Computer']}"
+end
+
+def display_winner(scorebrd)
+  prompt "#{scorebrd.key(5)} has won the game!"
+end
+
+def reset_score(scorebrd)
+  scorebrd.transform_values! do |score|
+    score = 0
+  end
+end
+
 loop do
   board = initialize_board
 
@@ -112,10 +122,18 @@ loop do
   display_board(board)
 
   if someone_won?(board)
-    prompt "#{detect_winner(board)} won!"
+    prompt "#{detect_winner(board)} won this round!"
   else
     prompt "It's a tie!"
   end
+
+  update_score(scoreboard, detect_winner(board))
+  display_score(scoreboard)
+  puts ""
+  sleep 2
+  scoreboard.key(5) ? display_winner(scoreboard) : next
+ 
+  reset_score(scoreboard)
 
   prompt "Play again? (y or n)"
   answer = gets.chomp
