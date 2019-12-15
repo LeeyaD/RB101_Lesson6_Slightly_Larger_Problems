@@ -12,10 +12,10 @@ def prompt(msg)
 end
 
 # rubocop:disable Metrics/AbcSize
-def display_board(brd)
+def display_board(brd, scorebrd)
   system 'clear'
   prompt "You're a #{PLAYER_MARKER}. Computer is #{COMPUTER_MARKER}."
-  prompt "The current score is, "
+  prompt "Current score: Player #{scorebrd['Player']} | Computer #{scorebrd['Computer']}"
   puts ""
   puts "      |      |"
   puts "   #{brd[1]}  |   #{brd[2]}  |   #{brd[3]}"
@@ -39,7 +39,7 @@ def initialize_board
 end
 
 def empty_squares(brd)
-  brd.keys.select { |num| brd[num] == INITIAL_MARKER }
+    brd.keys.select { |num| brd[num] == INITIAL_MARKER }
 end
 
 def joinor(array, delimiter = ", ", join_word = "or")
@@ -62,11 +62,6 @@ def player_places_piece!(brd)
   end
 
   brd[square] = PLAYER_MARKER
-end
-
-def computer_places_piece!(brd)
-  square = empty_squares(brd).sample
-  brd[square] = COMPUTER_MARKER
 end
 
 def board_full?(brd)
@@ -106,21 +101,49 @@ def reset_score(scorebrd)
   end
 end
 
+def computer_places_piece!(brd)
+  if find_threat(brd).size == nil
+    defensive_move(brd)
+  else
+   square = empty_squares(brd).sample
+   brd[square] = COMPUTER_MARKER
+  end
+end
+
+def find_threat(brd)
+  WINNING_LINES.select do |line|
+    brd.values_at(*line).count(PLAYER_MARKER) == 2 #&&
+    binding.pry
+    #brd.values_at(*line).count(INITIAL_MARKER) == 1
+  end
+end
+
+def defensive_move(brd)
+  line = find_threat(brd).sample
+  
+  line.each do |space|
+      if brd[space] == INITIAL_MARKER
+        brd[space] = COMPUTER_MARKER
+      end
+  end
+end
+
+
 loop do
   board = initialize_board
 
   loop do
-    display_board(board)
+    display_board(board, scoreboard)
 
     player_places_piece!(board)
     break if someone_won?(board) || board_full?(board)
-
+    
     computer_places_piece!(board)
     break if someone_won?(board) || board_full?(board)
   end
 
-  display_board(board)
-
+  display_board(board, scoreboard)
+  
   if someone_won?(board)
     prompt "#{detect_winner(board)} won this round!"
   else
