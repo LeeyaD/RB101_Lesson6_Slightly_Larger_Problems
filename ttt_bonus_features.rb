@@ -7,7 +7,7 @@ COMPUTER_MARKER = "O"
 WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] +
                 [[1, 4, 7], [2, 5, 8], [3, 6, 9]] +
                 [[1, 5, 9], [3, 5, 7]]
-FIRST_MOVES = ['Player', 'Computer']
+FIRST_MOVES = ['Player', 'Computer', 'Choose']
                 
 scoreboard = {'Player' => 0, 'Computer' => 0}
 
@@ -151,13 +151,26 @@ def who_moves_first(frstm)
   frstm.sample
 end
 
+def players_choice
+  prompt "Choose who moves first! Type 1 for yourself or 2 for the Computer."
+  choice = gets.chomp
+  case choice
+  when "1"
+    'Player'
+  when "2"
+    'Computer'
+  end 
+end
+
 loop do
   board = initialize_board
+  
   first_move = who_moves_first(FIRST_MOVES)
-
+  first_move = players_choice if first_move == 'Choose'
+  
   loop do
     display_board(board, scoreboard)
-    
+
     case first_move
     when 'Player'
       player_places_piece!(board)
