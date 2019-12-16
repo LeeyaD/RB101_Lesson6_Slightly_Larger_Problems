@@ -1,4 +1,4 @@
-require 'Pry'
+require 'pry'
 require 'pry-byebug'
 
 INITIAL_MARKER = " "
@@ -75,9 +75,9 @@ end
 def detect_winner(brd)
   WINNING_LINES.each do |line|
     if brd.values_at(*line).count(PLAYER_MARKER) == 3
-      return 'Player'
+      return "Player"
     elsif brd.values_at(*line).count(COMPUTER_MARKER) == 3
-      return 'Computer'
+      return "Computer"
     end
   end
   nil
@@ -106,72 +106,68 @@ def reset_score(scorebrd)
 end
 
 def computer_places_piece!(brd)
-  if find_winning_square(brd)
-    brd[find_winning_square(brd)] = COMPUTER_MARKER
-  elsif find_threat(brd).size > 0
-    defensive_move(brd)
-  elsif brd[5] == INITIAL_MARKER
-     brd[5] = COMPUTER_MARKER
-  else
-   square = empty_squares(brd).sample
-   brd[square] = COMPUTER_MARKER
-  end
-end
-
-def find_winning_square(brd)
   square = nil
-  WINNING_LINES.select do |line|
-    if brd.values_at(*line).count(COMPUTER_MARKER) == 2 &&
-       brd.values_at(*line).count(INITIAL_MARKER) == 1
-      line.each do |space|
-        square = space if brd[space] == INITIAL_MARKER end
-      end
+
+  WINNING_LINES.each do |line|
+    square = find_at_risk_square(line, brd, COMPUTER_MARKER)
+    break if square
+  end
+
+  if !square
+    WINNING_LINES.each do |line|
+      square = find_at_risk_square(line, brd, PLAYER_MARKER)
+      break if square
     end
-  square
+  end 
+
+  if !square
+    square = 5 if brd[5] == INITIAL_MARKER
+  end
+
+  if !square
+   square = empty_squares(brd).sample
+  end
+
+  brd[square] = COMPUTER_MARKER
 end
 
-def find_threat(brd)
-  WINNING_LINES.select do |line|
-    brd.values_at(*line).count(PLAYER_MARKER) == 2 &&
-    brd.values_at(*line).count(INITIAL_MARKER) == 1
+def find_at_risk_square(line, board, mark)
+  if board.values_at(*line).count(mark) == 2
+    board.select do |k, v|
+      line.include?(k) && v == INITIAL_MARKER
+    end.keys.first
+  else
+    nil
   end
 end
 
-def defensive_move(brd)
-  line = find_threat(brd).sample
-  
-  line.each do |space|
-      if brd[space] == INITIAL_MARKER
-        brd[space] = COMPUTER_MARKER
-      end
-  end
+def who_moves_first(first_move)
+  first_move.sample
 end
 
-def who_moves_first(frstm)
-  frstm.sample
-end
-
-def players_choice
+def players_choice(fstm)
   prompt "Choose who moves first! Type 1 for yourself or 2 for the Computer."
   choice = gets.chomp
   case choice
   when "1"
-    'Player'
+    fstm = 'Player'
   when "2"
-    'Computer'
-  end 
+    fstm = 'Computer'
+  end
 end
 
 loop do
   board = initialize_board
-  
-  first_move = who_moves_first(FIRST_MOVES)
-  first_move = players_choice if first_move == 'Choose'
+  # binding.pry
+  result = who_moves_first(FIRST_MOVES)
+  if result == 'Choose' 
+    players_choice(result)
+  end 
   
   loop do
     display_board(board, scoreboard)
 
-    case first_move
+    case result
     when 'Player'
       player_places_piece!(board)
       break if someone_won?(board) || board_full?(board)
