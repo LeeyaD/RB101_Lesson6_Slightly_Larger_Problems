@@ -1,10 +1,14 @@
 require 'Pry'
+require 'pry-byebug'
+
 INITIAL_MARKER = " "
 PLAYER_MARKER = "X"
 COMPUTER_MARKER = "O"
 WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] +
                 [[1, 4, 7], [2, 5, 8], [3, 6, 9]] +
                 [[1, 5, 9], [3, 5, 7]]
+FIRST_MOVES = ['Player', 'Computer']
+                
 scoreboard = {'Player' => 0, 'Computer' => 0}
 
 def prompt(msg)
@@ -102,19 +106,34 @@ def reset_score(scorebrd)
 end
 
 def computer_places_piece!(brd)
-  if find_threat(brd).size == nil
+  if find_winning_square(brd)
+    brd[find_winning_square(brd)] = COMPUTER_MARKER
+  elsif find_threat(brd).size > 0
     defensive_move(brd)
+  elsif brd[5] == INITIAL_MARKER
+     brd[5] = COMPUTER_MARKER
   else
    square = empty_squares(brd).sample
    brd[square] = COMPUTER_MARKER
   end
 end
 
+def find_winning_square(brd)
+  square = nil
+  WINNING_LINES.select do |line|
+    if brd.values_at(*line).count(COMPUTER_MARKER) == 2 &&
+       brd.values_at(*line).count(INITIAL_MARKER) == 1
+      line.each do |space|
+        square = space if brd[space] == INITIAL_MARKER end
+      end
+    end
+  square
+end
+
 def find_threat(brd)
   WINNING_LINES.select do |line|
-    brd.values_at(*line).count(PLAYER_MARKER) == 2 #&&
-    binding.pry
-    #brd.values_at(*line).count(INITIAL_MARKER) == 1
+    brd.values_at(*line).count(PLAYER_MARKER) == 2 &&
+    brd.values_at(*line).count(INITIAL_MARKER) == 1
   end
 end
 
@@ -128,18 +147,30 @@ def defensive_move(brd)
   end
 end
 
+def who_moves_first(frstm)
+  frstm.sample
+end
 
 loop do
   board = initialize_board
+  first_move = who_moves_first(FIRST_MOVES)
 
   loop do
     display_board(board, scoreboard)
-
-    player_places_piece!(board)
-    break if someone_won?(board) || board_full?(board)
     
-    computer_places_piece!(board)
-    break if someone_won?(board) || board_full?(board)
+    case first_move
+    when 'Player'
+      player_places_piece!(board)
+      break if someone_won?(board) || board_full?(board)
+      computer_places_piece!(board)
+      break if someone_won?(board) || board_full?(board)
+    when 'Computer'
+      computer_places_piece!(board)
+      break if someone_won?(board) || board_full?(board)
+      display_board(board, scoreboard)
+      player_places_piece!(board)
+      break if someone_won?(board) || board_full?(board)
+    end
   end
 
   display_board(board, scoreboard)
