@@ -1,11 +1,39 @@
 # PROGRAM ISSUES
 
-# ALWAYS prompts user to choose who goes first and... ## FIXED - randomly chooses if
-   ## player, computer or user's choice gets to go first
+# keep track of 'current_player' and switch variable after every turn
+#  current_player's initial value will depend on value of 'result'
+# CHANGE ---> result == 'Choose' ? result = players_choice : nil
+# TO -------> result == 'Choose' ? current_player = players_choice : nil
 
-# No matter what option user chooses, whether it's #1 for 'Player' or #2 for 'Computer'
-# the following results happen, seemingly randomly;
-# 1. 'Player' one goes first with no issues ## FIXED!!
-# 2. 'Computer' goes first with no issues ## FIXED!!
-# 3. Endless loop of #display_board occurs; screen clears & displays board repeatedly
+# ALSO CHANGE
+# def players_choice
+#   prompt "Choose who moves first! Type 1 for yourself or 2 for the Computer."
+#   choice = gets.chomp
+#   case choice
+#   when "1"
+#     'Player' <---true
+#   when "2"
+#     'Computer' <--- false
+#   end
+# end
+
+loop do
+  display_board(bpard)
+  place_piece!(board, current_player)
+  current_player = alternate_player(current_player)
+  break if someone_won?(board) || board_full?(board)
+end
+
+def place_piece!(brd, current_player)
+  case current_player
+  when true
+    player_places_piece!(brd)
+  when false
+    computer_places_piece!(brd)
+  end
+end
+
+def alternate_player(current_player)
+  !!current_player
+end
 

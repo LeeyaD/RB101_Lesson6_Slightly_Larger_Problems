@@ -145,41 +145,40 @@ def who_moves_first(first_move)
   first_move.sample
 end
 
-def players_choice(fstm)
+def players_choice
   prompt "Choose who moves first! Type 1 for yourself or 2 for the Computer."
   choice = gets.chomp
   case choice
   when "1"
-    fstm = 'Player'
+    true # 'Player'
   when "2"
-    fstm = 'Computer'
+    false # 'Computer'
   end
+end
+
+def place_piece!(brd, current_player)
+  case current_player
+  when true
+    player_places_piece!(brd)
+  when false
+    computer_places_piece!(brd)
+  end
+end
+
+def alternate_player(current_player)
+  !current_player #changed from !! to ! see if that fixes either player going without alternating
 end
 
 loop do
   board = initialize_board
-  # binding.pry
-  result = who_moves_first(FIRST_MOVES)
-  if result == 'Choose' 
-    players_choice(result)
-  end 
-  
+  result = who_moves_first(FIRST_MOVES) #create a case or if statement to handle assigning 'current_player'
+  result == 'Choose' ? current_player = players_choice : nil #when 'Player' or 'Computer' is randomly selected
+  binding.pry
   loop do
     display_board(board, scoreboard)
-
-    case result
-    when 'Player'
-      player_places_piece!(board)
-      break if someone_won?(board) || board_full?(board)
-      computer_places_piece!(board)
-      break if someone_won?(board) || board_full?(board)
-    when 'Computer'
-      computer_places_piece!(board)
-      break if someone_won?(board) || board_full?(board)
-      display_board(board, scoreboard)
-      player_places_piece!(board)
-      break if someone_won?(board) || board_full?(board)
-    end
+    place_piece!(board, current_player)
+    current_player = alternate_player(current_player)
+    break if someone_won?(board) || board_full?(board)
   end
 
   display_board(board, scoreboard)
