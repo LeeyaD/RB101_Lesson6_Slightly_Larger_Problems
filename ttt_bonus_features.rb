@@ -1,6 +1,3 @@
-require 'pry'
-require 'pry-byebug'
-
 INITIAL_MARKER = " "
 PLAYER_MARKER = "X"
 COMPUTER_MARKER = "O"
@@ -8,18 +5,16 @@ WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] +
                 [[1, 4, 7], [2, 5, 8], [3, 6, 9]] +
                 [[1, 5, 9], [3, 5, 7]]
 FIRST_MOVES = ['Player', 'Computer', 'Choose']
-                
-scoreboard = {'Player' => 0, 'Computer' => 0}
+scoreboard = { 'Player' => 0, 'Computer' => 0 }
 
 def prompt(msg)
   puts "=> #{msg}"
 end
 
 # rubocop:disable Metrics/AbcSize
-def display_board(brd, scorebrd)
+def display_board(brd)
   system 'clear'
   prompt "You're a #{PLAYER_MARKER}. Computer is #{COMPUTER_MARKER}."
-  prompt "Current score: Player #{scorebrd['Player']} | Computer #{scorebrd['Computer']}"
   puts ""
   puts "      |      |"
   puts "   #{brd[1]}  |   #{brd[2]}  |   #{brd[3]}"
@@ -43,12 +38,12 @@ def initialize_board
 end
 
 def empty_squares(brd)
-    brd.keys.select { |num| brd[num] == INITIAL_MARKER }
+  brd.keys.select { |num| brd[num] == INITIAL_MARKER }
 end
 
 def joinor(array, delimiter = ", ", join_word = "or")
   if array.size == 1
-    "#{array[0]}"
+    array[0].to_s
   elsif array.size == 2
     "#{array[0]} " + join_word + " #{array[1]}"
   else
@@ -72,7 +67,7 @@ def board_full?(brd)
   empty_squares(brd).empty?
 end
 
-def detect_winner(brd)
+def find_winner(brd)
   WINNING_LINES.each do |line|
     if brd.values_at(*line).count(PLAYER_MARKER) == 3
       return "Player"
@@ -87,24 +82,24 @@ def someone_won?(brd)
   !!detect_winner(brd)
 end
 
-def update_score(scorebrd, winner)
-  scorebrd[winner] += 1 unless winner == nil
+def update_score(scrbrd, winner)
+  scrbrd[winner] += 1 unless winner.nil?
 end
 
-def display_score(scorebrd)
-  prompt "The score is: Player #{scorebrd['Player']}, Computer #{scorebrd['Computer']}"
+def display_score(scrbrd)
+  prompt "Score: Player #{scrbrd['Player']} | Computer #{scrbrd['Computer']}"
 end
 
-def display_winner(scorebrd)
-  prompt "#{scorebrd.key(5)} has won the game!"
+def display_winner(scrbrd)
+  prompt "#{scrbrd.key(5)} has won the game!"
 end
 
-def reset_score(scorebrd)
-  scorebrd.transform_values! do |score|
-    score = 0
-  end
+def reset_score(scrbrd)
+  scrbrd.transform_values! { |_| 0 }
 end
 
+# rubocop:disable Metrics/CyclomaticComplexity
+# rubocop:disable Metrics/MethodLength
 def computer_places_piece!(brd)
   square = nil
 
@@ -118,41 +113,58 @@ def computer_places_piece!(brd)
       square = find_at_risk_square(line, brd, PLAYER_MARKER)
       break if square
     end
-  end 
+  end
 
   if !square
     square = 5 if brd[5] == INITIAL_MARKER
   end
 
   if !square
-   square = empty_squares(brd).sample
+    square = empty_squares(brd).sample
   end
 
   brd[square] = COMPUTER_MARKER
 end
+# rubocop:enable Metrics/MethodLength
+# rubocop:enable Metrics/CyclomaticComplexity
 
 def find_at_risk_square(line, board, mark)
   if board.values_at(*line).count(mark) == 2
     board.select do |k, v|
       line.include?(k) && v == INITIAL_MARKER
     end.keys.first
-  else
-    nil
   end
 end
 
-def who_moves_first(first_move)
-  first_move.sample
+def who_moves_first
+  result = FIRST_MOVES.sample
+  case result
+  when 'Choose'
+    puts "Looks like you get to decide who goes first this round!"
+    puts ""
+    sleep 2
+    players_choice
+  else
+    puts "#{result} gets to go first!"
+    sleep 2
+    result == 'Player' ? true : false
+  end
 end
 
 def players_choice
-  prompt "Choose who moves first! Type 1 for yourself or 2 for the Computer."
-  choice = gets.chomp
+  choice = nil
+  loop do
+    prompt "Type the number 1 for yourself or 2 for the Computer."
+    choice = gets.chomp.to_i
+    break if choice == 1 || choice == 2
+    prompt "Sorry, that's not a valid choice"
+  end
+
   case choice
-  when "1"
-    true # 'Player'
-  when "2"
-    false # 'Computer'
+  when 1
+    true
+  when 2
+    false
   end
 end
 
@@ -166,35 +178,55 @@ def place_piece!(brd, current_player)
 end
 
 def alternate_player(current_player)
-  !current_player #changed from !! to ! see if that fixes either player going without alternating
+  !current_player
 end
+
+system 'clear'
+prompt "Welcome to Tic Tac Toe! To win the game get three in a row!"
+puts ""
+sleep 4
+prompt "You're 'X' and the Computer is 'O'. You and the Computer alternate
+placing Xs and Os on the game board until one of you has 3 in a row or until all
+nine squares are filled. First one to win 5 rounds, wins the game!"
+puts ""
+sleep 10
+prompt "The twist here is you never know who's going to go first each round!
+You, the Computer or will you get the special chance to decide!"
+puts ""
+sleep 10
+prompt "Let's begin!"
+sleep 2
+system 'clear'
 
 loop do
   board = initialize_board
-  result = who_moves_first(FIRST_MOVES) #create a case or if statement to handle assigning 'current_player'
-  result == 'Choose' ? current_player = players_choice : nil #when 'Player' or 'Computer' is randomly selected
-  binding.pry
+  system 'clear'
+  current_player = who_moves_first
+
   loop do
-    display_board(board, scoreboard)
+    display_board(board)
     place_piece!(board, current_player)
     current_player = alternate_player(current_player)
     break if someone_won?(board) || board_full?(board)
   end
 
-  display_board(board, scoreboard)
-  
+  display_board(board)
+
   if someone_won?(board)
     prompt "#{detect_winner(board)} won this round!"
   else
     prompt "It's a tie!"
   end
 
-  update_score(scoreboard, detect_winner(board))
+  puts ""
+  sleep 2
+  update_score(scoreboard, find_winner(board))
   display_score(scoreboard)
+
   puts ""
   sleep 2
   scoreboard.key(5) ? display_winner(scoreboard) : next
- 
+
   reset_score(scoreboard)
 
   prompt "Play again? (y or n)"
