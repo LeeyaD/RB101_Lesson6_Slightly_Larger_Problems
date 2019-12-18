@@ -54,7 +54,7 @@ end
 def player_places_piece!(brd)
   square = ""
   loop do
-    prompt "Choose a sqaure (#{joinor(empty_squares(brd))}):"
+    prompt "Choose a square (#{joinor(empty_squares(brd))}):"
     square = gets.chomp.to_i
     break if empty_squares(brd).include?(square)
     prompt "Sorry, that's not a valid choice"
@@ -79,7 +79,7 @@ def find_winner(brd)
 end
 
 def someone_won?(brd)
-  !!detect_winner(brd)
+  !!find_winner(brd)
 end
 
 def update_score(scrbrd, winner)
@@ -142,11 +142,11 @@ def who_moves_first
   when 'Choose'
     puts "Looks like you get to decide who goes first this round!"
     puts ""
-    sleep 2
+    sleep 3
     players_choice
   else
     puts "#{result} gets to go first!"
-    sleep 2
+    sleep 3
     result == 'Player' ? true : false
   end
 end
@@ -213,7 +213,7 @@ loop do
   display_board(board)
 
   if someone_won?(board)
-    prompt "#{detect_winner(board)} won this round!"
+    prompt "#{find_winner(board)} won this round!"
   else
     prompt "It's a tie!"
   end
@@ -224,11 +224,11 @@ loop do
   display_score(scoreboard)
 
   puts ""
-  sleep 2
+  sleep 3
   scoreboard.key(5) ? display_winner(scoreboard) : next
 
   reset_score(scoreboard)
-
+  puts ""
   prompt "Play again? (y or n)"
   answer = gets.chomp
   break unless answer.downcase.start_with?("y")
