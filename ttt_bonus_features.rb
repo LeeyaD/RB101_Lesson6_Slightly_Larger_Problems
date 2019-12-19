@@ -184,18 +184,18 @@ end
 system 'clear'
 prompt "Welcome to Tic Tac Toe! To win the game get three in a row!"
 puts ""
-sleep 4
+
 prompt "You're 'X' and the Computer is 'O'. You and the Computer alternate
 placing Xs and Os on the game board until one of you has 3 in a row or until all
 nine squares are filled. First one to win 5 rounds, wins the game!"
 puts ""
-sleep 10
+
 prompt "The twist here is you never know who's going to go first each round!
 You, the Computer or will you get the special chance to decide!"
 puts ""
-sleep 10
-prompt "Let's begin!"
-sleep 2
+
+prompt "Press Enter or Return to begin playing!"
+STDIN.getch
 system 'clear'
 
 loop do
