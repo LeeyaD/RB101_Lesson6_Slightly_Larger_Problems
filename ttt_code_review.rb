@@ -28,27 +28,4 @@ Excellent work, Leeya! Most of my comments concern relatively minor issues, thou
 
 Let me know if you have any further questions.
 
-
-# GAMEPLAY
-#  [ ] using STDIN.getch instead of #sleep
-#  [ ] improving #play_again?, anyword starting w/ 'y' will do
-
-
-# RUBOCOP
-#  [ ] Refactor #computer_places_piece! to avoid disabling cops
-
-# SOURCE CODE
-# - Logic
-#  - chunks of code to move out of main loop and extract into methods: 
-#    1. Lines 215-219, display of round winner  
-#    2. Lines 232-234, the 'play_again?' question
-#    3. Loop on lines 206-210, could be extracted to #play_round method
-#  - #computer_places_piece! could be extracted into numerous methods that return either a # nil
-# **square = offensive_move(brd) || defensive_move(brd) || center_square(brd) || empty_squares(brd).sample 
-# - Readability
-#  - bring variable 'scoreboard' down closer to the main game loop, closer to the code that uses it
-#  - avoid abbreviations for variable names
-#  - store the max number of wins, 5, in a constant. Makes intent explicit & easier to change in the future
-#  - don't need the ternary in 'result == 'Player' ? true : false', 'result == 'Player' alone will return 
-#    either true or false
  

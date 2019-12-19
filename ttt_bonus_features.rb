@@ -1,3 +1,7 @@
+require 'io/console'
+require 'pry'
+require 'pry-byebug'
+
 INITIAL_MARKER = " "
 PLAYER_MARKER = "X"
 COMPUTER_MARKER = "O"
@@ -5,7 +9,7 @@ WINNING_LINES = [[1, 2, 3], [4, 5, 6], [7, 8, 9]] +
                 [[1, 4, 7], [2, 5, 8], [3, 6, 9]] +
                 [[1, 5, 9], [3, 5, 7]]
 FIRST_MOVES = ['Player', 'Computer', 'Choose']
-scoreboard = { 'Player' => 0, 'Computer' => 0 }
+MAX_WINS = 5
 
 def prompt(msg)
   puts "=> #{msg}"
@@ -82,51 +86,51 @@ def someone_won?(brd)
   !!find_winner(brd)
 end
 
-def update_score(scrbrd, winner)
-  scrbrd[winner] += 1 unless winner.nil?
+def update_score(scoreboard, winner)
+  scoreboard[winner] += 1 unless winner.nil?
 end
 
-def display_score(scrbrd)
-  prompt "Score: Player #{scrbrd['Player']} | Computer #{scrbrd['Computer']}"
+def display_score(scoreboard)
+  prompt "Score: Player #{scoreboard['Player']} |" \
+         " Computer #{scoreboard['Computer']}"
 end
 
-def display_winner(scrbrd)
-  prompt "#{scrbrd.key(5)} has won the game!"
+def display_winner(scoreboard)
+  prompt "#{scoreboard.key(MAX_WINS)} has won the game!"
 end
 
-def reset_score(scrbrd)
-  scrbrd.transform_values! { |_| 0 }
+def reset_score(scoreboard)
+  scoreboard.transform_values! { |_| 0 }
 end
 
-# rubocop:disable Metrics/CyclomaticComplexity
-# rubocop:disable Metrics/MethodLength
-def computer_places_piece!(brd)
+def center_square(brd)
+  5 if brd[5] == INITIAL_MARKER
+end
+
+def offensive_move(brd)
   square = nil
-
   WINNING_LINES.each do |line|
     square = find_at_risk_square(line, brd, COMPUTER_MARKER)
     break if square
   end
+  square
+end
 
-  if !square
-    WINNING_LINES.each do |line|
-      square = find_at_risk_square(line, brd, PLAYER_MARKER)
-      break if square
-    end
+def defensive_move(brd)
+  square = nil
+  WINNING_LINES.each do |line|
+    square = find_at_risk_square(line, brd, PLAYER_MARKER)
+    break if square
   end
+  square
+end
 
-  if !square
-    square = 5 if brd[5] == INITIAL_MARKER
-  end
-
-  if !square
-    square = empty_squares(brd).sample
-  end
+def computer_places_piece!(brd)
+  square = offensive_move(brd) || defensive_move(brd) ||
+           center_square(brd) || empty_squares(brd).sample
 
   brd[square] = COMPUTER_MARKER
 end
-# rubocop:enable Metrics/MethodLength
-# rubocop:enable Metrics/CyclomaticComplexity
 
 def find_at_risk_square(line, board, mark)
   if board.values_at(*line).count(mark) == 2
@@ -142,12 +146,15 @@ def who_moves_first
   when 'Choose'
     puts "Looks like you get to decide who goes first this round!"
     puts ""
-    sleep 3
+    prompt "Press <enter> to continue!"
+    STDIN.getch
     players_choice
   else
     puts "#{result} gets to go first!"
-    sleep 3
-    result == 'Player' ? true : false
+    puts ""
+    prompt "Press <enter> to continue!"
+    STDIN.getch
+    result == 'Player'
   end
 end
 
@@ -181,6 +188,30 @@ def alternate_player(current_player)
   !current_player
 end
 
+def play_round(brd, current_player)
+  loop do
+    display_board(brd)
+    place_piece!(brd, current_player)
+    current_player = alternate_player(current_player)
+    break if someone_won?(brd) || board_full?(brd)
+  end
+end
+
+def round_winner(brd)
+  if someone_won?(brd)
+    prompt "#{find_winner(brd)} won this round!"
+  else
+    prompt "It's a tie!"
+  end
+end
+
+def play_again?
+  prompt "Play again? (y or n)"
+  gets.chomp.downcase
+end
+
+scoreboard = { 'Player' => 0, 'Computer' => 0 }
+
 system 'clear'
 prompt "Welcome to Tic Tac Toe! To win the game get three in a row!"
 puts ""
@@ -203,20 +234,11 @@ loop do
   system 'clear'
   current_player = who_moves_first
 
-  loop do
-    display_board(board)
-    place_piece!(board, current_player)
-    current_player = alternate_player(current_player)
-    break if someone_won?(board) || board_full?(board)
-  end
+  play_round(board, current_player)
 
   display_board(board)
 
-  if someone_won?(board)
-    prompt "#{find_winner(board)} won this round!"
-  else
-    prompt "It's a tie!"
-  end
+  round_winner(board)
 
   puts ""
   sleep 2
@@ -224,14 +246,12 @@ loop do
   display_score(scoreboard)
 
   puts ""
-  sleep 3
-  scoreboard.key(5) ? display_winner(scoreboard) : next
+  sleep 2
+  scoreboard.key(MAX_WINS) ? display_winner(scoreboard) : next
 
   reset_score(scoreboard)
   puts ""
-  prompt "Play again? (y or n)"
-  answer = gets.chomp
-  break unless answer.downcase.start_with?("y")
+  break unless play_again? == "y"
 end
 
 prompt "Thanks for playing Tic Tac Toe! Good bye!"
