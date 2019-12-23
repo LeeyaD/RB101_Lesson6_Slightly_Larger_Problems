@@ -6,8 +6,7 @@ Make a note in notebook of:
 Change code:
 > Remove 'requires' at the top of page
 > Don't add intro for game
-> Replace #compare_cards with #detect_results AND remove #player_won?, #dealer_won?
-> Replace #declare_winner with #display_results
+
 Some bonus features to consider:
 
 1. Calculating the total. Every time we need the player's or dealer's total value, we call a total method. Doing this is expensive, from a performance perspective (suppose that we cared about performance). Do we really need to calculate the total value over and over? Can we use a local variable to cache the calculation, and instead of calling total every time, just use the local variable? 

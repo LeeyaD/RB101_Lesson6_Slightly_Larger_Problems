@@ -73,17 +73,29 @@ def busted?(cards)
 end
 
 def player_turn(players_cards, dealers_cards, deck)
-  answer = nil
   loop do
-    prompt "Do you want to (h)it or (s)tay?"
-    answer = gets.chomp
-    deal_card(players_cards, deck) if answer == 'h'
-    break if answer == 's' || busted?(players_cards)
-    display_cards(players_cards, dealers_cards)
-  end
+    answer = nil
+    loop do
+      prompt "Do you want to (h)it or (s)tay?"
+      answer = gets.chomp
+      break if ['h', 's'].include?(answer)
+      prompt "Please enter a valid choice"
+    end 
+
+    if answer == 'h'  
+      deal_card(players_cards, deck)
+      prompt "You chose to hit!"
+      display_cards(players_cards, dealers_cards)
+    end
+  
+   break if answer == 's' || busted?(players_cards)
+  end 
 
   if busted?(players_cards)
-    prompt "Oh no! You went over!"
+    # display_results(players_cards, dealers_cards)
+    display_cards(players_cards, dealers_cards)
+    grand_output(players_cards, dealers_cards)
+    play_again?
   else
     prompt "You choose to stay. Dealer's turn!"
     line
@@ -93,22 +105,25 @@ end
 def dealer_turn(dealers_cards, deck)
   loop do
     break if total(dealers_cards) >= 17 || busted?(dealers_cards)
+    prompt "Dealer chooses to hit!"
     deal_card(dealers_cards, deck)
   end
 
   if busted?(dealers_cards)
     sleep(1)
     prompt "Dealer went over!"
+    # display_results(players_cards, dealers_cards)
+    display_cards(players_cards, dealers_cards)
+    grand_output(players_cards, dealers_cards)
+    play_again?
   else
     prompt 'Dealer chooses to stay!'
   end
 end
 
-
-
 def display_final_card_totals(players_cards, dealers_cards)
   prompt "Your cards: #{players_cards} " \
-  "totaling #{total(players_cards)} | "
+  "totaling #{total(players_cards)}"
   prompt "Dealer's cards: #{dealers_cards} " \
   "totaling #{total(dealers_cards)}"
 end
@@ -119,30 +134,36 @@ def display_cards(players_cards, dealers_cards)
   prompt "Dealer's cards: #{dealers_cards[0]} and ?"
 end
 
-def player_won?(player, dealer)
-  player <= 21 && player > dealer || dealer > 21 && dealer > player
-end
+def detect_result(players_cards, dealers_cards) #compare_cards
+  player_total = total(players_cards)
+  dealer_total = total(dealers_cards)
 
-def dealer_won?(player, dealer)
-  player > 21 && player > dealer || dealer <= 21 && dealer > player
-end
-
-def compare_cards(players_cards, dealers_cards)
-  player = total(players_cards)
-  dealer = total(dealers_cards)
-
-  if player_won?(player, dealer)
-    'You won!'
-  elsif dealer_won?(player, dealer)
-    'Dealer won!'
+  if player_total > 21
+    :player_busted
+  elsif dealer_total > 21
+    :dealer_busted
+  elsif dealer_total < player_total
+    :player
+  elsif player_total < dealer_total
+    :dealer
+  else 
+    :tie
   end
 end
 
-def declare_winner(players_cards, dealers_cards)
-  results = compare_cards(players_cards, dealers_cards)
-  if results
-    prompt results.to_s
-  else
+def display_results(players_cards, dealers_cards)
+  result = detect_result(players_cards, dealers_cards)
+
+  case result
+  when :player_busted
+    prompt "You busted! Dealer wins!"
+  when :dealer_busted
+    prompt "Dealer busted! You win!"
+  when :player
+    prompt "You win!"
+  when :dealer
+    prompt "Dealer wins!"
+  else 
     prompt "It's a tie!"
   end
 end
@@ -154,10 +175,20 @@ def final_totals(players_cards, dealers_cards)
   line
 end
 
-def play_round(players_cards, dealers_cards, deck)
-  player_turn(players_cards, dealers_cards, deck)
-  return if busted?(players_cards)
-  dealer_turn(dealers_cards, deck)
+def play_again?
+  puts "-------------"
+  prompt "Do you want to play again? (y or n)"
+  answer = gets.chomp
+  answer.downcase == 'y'
+end
+
+def grand_output(players_cards, players_cards)
+  final_totals(players_cards, dealers_cards)
+  sleep(2)
+  line
+
+  display_results(players_cards, dealers_cards)
+  line
 end
 
 players_cards = []
@@ -165,7 +196,7 @@ dealers_cards = []
 
 system 'clear'
 prompt 'Welcome to Twenty One!'
-
+sleep (1)
 loop do
   system 'clear'
   reset_cards(players_cards, dealers_cards)
@@ -178,19 +209,23 @@ loop do
   initial_deal(players_cards, dealers_cards, deck)
   display_cards(players_cards, dealers_cards)
   line
-
-  play_round(players_cards, dealers_cards, deck)
+  
+  player_return = player_turn(players_cards, dealers_cards, deck)
+  case player_return
+  when true 
+    next
+  when false
+    break
+  else
+    nil 
+  end
+  sleep(1)
+  dealer_return = dealer_turn(dealers_cards, deck)
   line
+  
+  grand_output(players_cards, players_cards)
 
-  final_totals(players_cards, dealers_cards)
-  sleep(2)
-  line
-
-  declare_winner(players_cards, dealers_cards)
-  line
-
-  prompt 'Would you like to play again? (y/n)' # create #play_again?
-  break if gets.chomp.downcase == 'n'
+  break unless play_again?
 end
 
 prompt 'Thank you for playing! Goodbye!'
