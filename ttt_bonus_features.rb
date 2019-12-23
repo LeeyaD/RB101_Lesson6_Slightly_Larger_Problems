@@ -207,10 +207,8 @@ end
 
 def play_again?
   prompt "Play again? (y or n)"
-  gets.chomp.downcase
+  gets.chomp.downcase == 'y'
 end
-
-scoreboard = { 'Player' => 0, 'Computer' => 0 }
 
 system 'clear'
 prompt "Welcome to Tic Tac Toe! To win the game get three in a row!"
@@ -228,6 +226,8 @@ puts ""
 prompt "Press Enter or Return to begin playing!"
 STDIN.getch
 system 'clear'
+
+scoreboard = { 'Player' => 0, 'Computer' => 0 }
 
 loop do
   board = initialize_board
@@ -251,7 +251,7 @@ loop do
 
   reset_score(scoreboard)
   puts ""
-  break unless play_again? == "y"
+  break unless play_again?
 end
 
 prompt "Thanks for playing Tic Tac Toe! Good bye!"
