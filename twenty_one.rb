@@ -47,33 +47,6 @@ def initial_deal(players_cards, dealers_cards, deck)
   end
 end
 
-def display_final_card_totals(players_cards, dealers_cards)
-  prompt "Your cards: #{total(players_cards)} | " \
-  "Dealer\'s cards: #{total(dealers_cards)}"
-end
-
-def display_cards(players_cards, dealers_cards)
-  prompt "Your cards: #{total(players_cards)} | " \
-  "#{display_dealer_card(dealers_cards)}"
-end
-
-def display_dealer_card(cards)
-  face_cards = { "A" => "Ace", "J" => "Jack", "Q" => "Queen", "K" => "King" }
-  suits = { "H" => "Hearts", "D" => "Diamonds",
-            "C" => "Clubs", "S" => "Spades" }
-
-  suit = cards[0][0]
-  card = cards[0][1]
-
-  value = if face_cards.keys.include?(card) == true
-            face_cards[card]
-          else
-            card.to_s
-          end
-
-  "Dealer's card: #{value} of #{suits[suit]}"
-end
-
 def total(cards)
   values = cards.map { |card| card[1] }
 
@@ -102,7 +75,7 @@ end
 def player_turn(players_cards, dealers_cards, deck)
   answer = nil
   loop do
-    prompt "Do you want to hit or stay?(h/s)"
+    prompt "Do you want to (h)it or (s)tay?"
     answer = gets.chomp
     deal_card(players_cards, deck) if answer == 'h'
     break if answer == 's' || busted?(players_cards)
@@ -129,6 +102,21 @@ def dealer_turn(dealers_cards, deck)
   else
     prompt 'Dealer chooses to stay!'
   end
+end
+
+
+
+def display_final_card_totals(players_cards, dealers_cards)
+  prompt "Your cards: #{players_cards} " \
+  "totaling #{total(players_cards)} | "
+  prompt "Dealer's cards: #{dealers_cards} " \
+  "totaling #{total(dealers_cards)}"
+end
+
+def display_cards(players_cards, dealers_cards)
+  prompt "Your cards: #{players_cards} " \
+  "totaling #{total(players_cards)}"
+  prompt "Dealer's cards: #{dealers_cards[0]} and ?"
 end
 
 def player_won?(player, dealer)
@@ -169,14 +157,14 @@ end
 def play_round(players_cards, dealers_cards, deck)
   player_turn(players_cards, dealers_cards, deck)
   return if busted?(players_cards)
-  dealer_turn(players_cards, dealers_cards, deck)
+  dealer_turn(dealers_cards, deck)
 end
 
 players_cards = []
 dealers_cards = []
 
 system 'clear'
-prompt 'Welcome to Twenty One!' # flush out intro & explain gain
+prompt 'Welcome to Twenty One!'
 
 loop do
   system 'clear'
