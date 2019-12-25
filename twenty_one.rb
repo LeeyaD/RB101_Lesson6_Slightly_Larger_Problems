@@ -2,6 +2,7 @@ require 'io/console'
 
 WHATEVER_ONE = 21
 DEALER_HITS_UNTIL = 17
+MAX_WINS = 5
 
 def prompt(message)
   puts "=> #{message}"
@@ -223,7 +224,7 @@ def continue
 end
 
 def reset_score(scoreboard)
-  scoreboard.transform_values! { |_| 0 }
+  scoreboard.transform_values! { |_| 0 } if scoreboard.key(MAX_WINS)
 end
 
 def display_score(scoreboard)
@@ -250,7 +251,7 @@ def update_score(scoreboard)
 end
 
 def grand_winner(scoreboard)
-  winner = scoreboard.key(5)
+  winner = scoreboard.key(MAX_WINS)
   prompt "#{winner.to_s.capitalize} wins the game with 5 points!"
 end
 
@@ -264,7 +265,7 @@ continue
 
 loop do
   reset_cards(players_cards, dealers_cards)
-  reset_score(scoreboard) if scoreboard.key(5)
+  reset_score(scoreboard)
   deck = initialize_deck
   system 'clear'
 
