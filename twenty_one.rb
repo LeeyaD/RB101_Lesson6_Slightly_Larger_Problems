@@ -252,7 +252,7 @@ end
 
 def grand_winner(scoreboard)
   winner = scoreboard.key(MAX_WINS)
-  prompt "#{winner.to_s.capitalize} wins the game with 5 points!"
+  prompt "#{winner.to_s.capitalize} wins the game with #{MAX_WINS} points!"
 end
 
 players_cards = []
